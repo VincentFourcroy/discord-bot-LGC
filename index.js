@@ -1,4 +1,4 @@
-const { token } = require('./config.json')
+const { token, website } = require('./config.json')
 const {
   Client,
   Events,
@@ -37,7 +37,7 @@ client.on(Events.InteractionCreate, (interaction) => {
     interaction.reply(':gun: :gun: Pew pew!')
   }
   if (interaction.commandName === 'site') {
-    interaction.reply('https://guilde-lgc-dev.netlify.app/')
+    interaction.reply(`${website}`)
   }
 })
 
