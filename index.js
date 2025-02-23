@@ -138,7 +138,7 @@ async function checkForEventsUpdates() {
 
         // Create the embed message with EmbedBuilder
         const embed = new EmbedBuilder()
-          .setColor('#FF33F5')
+          .setColor(entry.eventType?.color)
           .setImage(entry.asset?.filenameUrl)
           .setTitle(entry.title)
           .setURL(eventUrl)
@@ -224,7 +224,7 @@ async function checkForNewsUpdates() {
 
         // Create the embed message with EmbedBuilder
         const embed = new EmbedBuilder()
-          .setColor('#FF33F5')
+          .setColor(entry.postCategory?.color)
           .setImage(entry.asset?.filenameUrl)
           .setTitle(entry.title)
           .setURL(newsUrl)
