@@ -115,7 +115,7 @@ async function checkForUpdates() {
     if (newEntries.length > 0) {
       const channel = await client.channels.fetch(CHANNEL_ID)
       for (const entry of newEntries) {
-        const eventUrl = `https://guilde-lgc.fr/events/${entry.id}`
+        const eventUrl = `${process.env.EVENTS}/${entry.id}`
 
         // Format the date to be more readable
         const date = new Date(entry.startsAt)
@@ -129,7 +129,7 @@ async function checkForUpdates() {
         })
 
         // Calculate the time remaining
-        const timeRemaining = getTimeRemaining(date)
+        let timeRemaining = getTimeRemaining(date)
 
         // Create the embed message with EmbedBuilder
         const embed = new EmbedBuilder()
@@ -146,27 +146,23 @@ async function checkForUpdates() {
         // Send the embed to the channel
         const message = await channel.send({ embeds: [embed] })
         // Function to update time remaining dynamically every minute
-        const interval = setInterval(() => {
-          const newTimeRemaining = getTimeRemaining(date) // Get the updated time remaining
-
-          // Edit the message with the new time remaining
-          message.edit({
-            embeds: [
-              embed.setFields(
-                { name: '\u200B', value: `:calendar_spiral: ${readableDate}` },
-                {
-                  name: '\u200B',
-                  value: `:hourglass: ${timeRemaining}`,
-                },
-              ),
-            ],
-          })
+        const interval = setInterval(async () => {
+          timeRemaining = getTimeRemaining(date) // Recalculate time remaining
 
           // Stop updating when the event starts
           if (new Date() >= date) {
-            clearInterval(interval) // Stop the interval when the event starts
+            clearInterval(interval) // Stop interval
+            return
           }
-        }, 60000) // Update every minute (60000 ms)
+
+          // Edit the message with the new time remaining
+          const updatedEmbed = EmbedBuilder.from(embed).setFields(
+            { name: '\u200B', value: `:calendar_spiral: ${readableDate}` },
+            { name: '\u200B', value: `:hourglass: ${timeRemaining}` },
+          )
+
+          await message.edit({ embeds: [updatedEmbed] })
+        }, 60000) // Update every minute
       }
     }
 
