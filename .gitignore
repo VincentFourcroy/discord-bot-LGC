@@ -1,4 +1,4 @@
 .env
-config.json
 node_modules
-data.json
+events_data.json
+news_data.json
