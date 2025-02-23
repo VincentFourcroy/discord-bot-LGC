@@ -1,11 +1,13 @@
 const { SlashCommandBuilder } = require('discord.js')
-const { events } = require('../../config.json')
+const dotenv = require('dotenv')
+
+dotenv.config()
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('events')
-    .setDescription('Le calendrier des événements de la guilde.'),
+    .setDescription('Le calendrier des events de guilde.'),
   async execute(interaction) {
-    await interaction.reply(`${events}`)
+    await interaction.reply(`${process.env.EVENTS}`)
   },
 }
