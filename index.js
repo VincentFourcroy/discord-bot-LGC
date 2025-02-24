@@ -24,7 +24,7 @@ const EVENTS_API_URL = process.env.AUTO_FETCH_EVENTS
 const NEWS_API_URL = process.env.AUTO_FETCH_NEWS
 const EVENTS_JSON_FILE_PATH = './events_data.json'
 const NEWS_JSON_FILE_PATH = './news_data.json'
-const CHECK_INTERVAL = 10 * 60 * 1000 // 10 minutes in milliseconds
+const CHECK_INTERVAL = 10 * 60 * 1000
 const EVENTS_CHANNEL_ID = process.env.EVENTS_CHANNEL_ID
 const NEWS_CHANNEL_ID = process.env.NEWS_CHANNEL_ID
 
@@ -74,11 +74,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 })
-
 client.once(Events.ClientReady, (c) => {
   console.log(`Logged in as ${c.user.tag}`)
-  checkForEventsUpdates() // Initial check
+  // Initial checks
+  checkForEventsUpdates()
   checkForNewsUpdates()
+  // Periodical checks
   setInterval(checkForEventsUpdates, CHECK_INTERVAL)
   setInterval(checkForNewsUpdates, CHECK_INTERVAL)
 })
@@ -89,14 +90,15 @@ async function checkForEventsUpdates() {
     if (!response.ok) throw new Error('Failed to fetch JSON data')
 
     const jsonResponse = await response.json()
-    console.log(
-      'Fetched Data Structure:',
-      JSON.stringify(jsonResponse, null, 2),
-    ) // Debugging
+    // Debugging
+    // console.log(
+    //   'Fetched Data Structure:',
+    //   JSON.stringify(jsonResponse, null, 2),
+    // )
 
-    // ✅ Correctly extract the array from `items`
+    // Correctly extract the array from `items`
     const newData = jsonResponse.items || []
-    console.log('Extracted Data:', newData)
+    // console.log('Extracted Data:', newData)
 
     if (!Array.isArray(newData)) {
       console.error('Error: Expected an array but got:', typeof newData)
@@ -108,13 +110,13 @@ async function checkForEventsUpdates() {
     if (fs.existsSync(EVENTS_JSON_FILE_PATH)) {
       oldData = JSON.parse(fs.readFileSync(EVENTS_JSON_FILE_PATH, 'utf-8'))
     }
-    console.log('Old Data:', oldData)
+    // console.log('Old Data:', oldData)
 
     // Find new entries (check by `id`)
     const newEntries = newData.filter(
       (newItem) => !oldData.some((oldItem) => oldItem.id === newItem.id),
     )
-    console.log('New Entries Found:', newEntries)
+    // console.log('New Entries Found:', newEntries)
 
     // Send Discord message for new entries (if any)
     if (newEntries.length > 0) {
@@ -152,11 +154,13 @@ async function checkForEventsUpdates() {
         const message = await channel.send({ embeds: [embed] })
         // Function to update time remaining dynamically every minute
         const interval = setInterval(async () => {
-          timeRemaining = getTimeRemaining(date) // Recalculate time remaining
+          // Recalculate time remaining
+          timeRemaining = getTimeRemaining(date)
 
           // Stop updating when the event starts
           if (new Date() >= date) {
-            clearInterval(interval) // Stop interval
+            // Stop interval
+            clearInterval(interval)
             return
           }
 
@@ -166,20 +170,21 @@ async function checkForEventsUpdates() {
             { name: '\u200B', value: `:hourglass: ${timeRemaining}` },
           )
 
+          // Update every minute
           await message.edit({ embeds: [updatedEmbed] })
-        }, 60000) // Update every minute
+        }, 60000)
       }
     }
 
-    // ✅ Save the new JSON only if new data is found
-    if (newData.length > 0) {
+    // Save the new JSON only if new data is found
+    if (newData.length > oldData.length) {
       fs.writeFileSync(EVENTS_JSON_FILE_PATH, JSON.stringify(newData, null, 2))
-      console.log('✅ JSON data updated successfully.')
+      console.log('✅ Events JSON data updated successfully.')
     } else {
-      console.warn('⚠️ No new data found. Skipping file update.')
+      console.warn('⚠️ No new events data found. Skipping file update.')
     }
   } catch (error) {
-    console.error('❌ Error fetching or processing JSON:', error)
+    console.error('❌ Error fetching or processing events JSON:', error)
   }
 }
 
@@ -189,14 +194,15 @@ async function checkForNewsUpdates() {
     if (!response.ok) throw new Error('Failed to fetch JSON data')
 
     const jsonResponse = await response.json()
-    console.log(
-      'Fetched Data Structure:',
-      JSON.stringify(jsonResponse, null, 2),
-    ) // Debugging
+    // Debugging
+    // console.log(
+    //   'Fetched Data Structure:',
+    //   JSON.stringify(jsonResponse, null, 2),
+    // )
 
-    // ✅ Correctly extract the array from `items`
+    // Correctly extract the array from `items`
     const newData = jsonResponse.items || []
-    console.log('Extracted Data:', newData)
+    // console.log('Extracted Data:', newData)
 
     if (!Array.isArray(newData)) {
       console.error('Error: Expected an array but got:', typeof newData)
@@ -208,13 +214,13 @@ async function checkForNewsUpdates() {
     if (fs.existsSync(NEWS_JSON_FILE_PATH)) {
       oldData = JSON.parse(fs.readFileSync(NEWS_JSON_FILE_PATH, 'utf-8'))
     }
-    console.log('Old Data:', oldData)
+    // console.log('Old Data:', oldData)
 
     // Find new entries (check by `id`)
     const newEntries = newData.filter(
       (newItem) => !oldData.some((oldItem) => oldItem.id === newItem.id),
     )
-    console.log('New Entries Found:', newEntries)
+    // console.log('New Entries Found:', newEntries)
 
     // Send Discord message for new entries (if any)
     if (newEntries.length > 0) {
@@ -239,22 +245,23 @@ async function checkForNewsUpdates() {
       }
     }
 
-    // ✅ Save the new JSON only if new data is found
-    if (newData.length > 0) {
+    // Save the new JSON only if new data is found
+    if (newData.length > oldData.length) {
       fs.writeFileSync(NEWS_JSON_FILE_PATH, JSON.stringify(newData, null, 2))
-      console.log('✅ JSON data updated successfully.')
+      console.log('✅ News JSON data updated successfully.')
     } else {
-      console.warn('⚠️ No new data found. Skipping file update.')
+      console.warn('⚠️ No new news data found. Skipping file update.')
     }
   } catch (error) {
-    console.error('❌ Error fetching or processing JSON:', error)
+    console.error('❌ Error fetching or processing news JSON:', error)
   }
 }
 
 // Helper function to get the time remaining in a readable format
 function getTimeRemaining(eventDate) {
+  // Difference in milliseconds
+  const timeDiff = eventDate - now
   const now = new Date()
-  const timeDiff = eventDate - now // Difference in milliseconds
 
   if (timeDiff <= 0) {
     return 'Event already started!'
