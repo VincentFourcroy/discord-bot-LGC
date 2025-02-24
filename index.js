@@ -260,8 +260,8 @@ async function checkForNewsUpdates() {
 // Helper function to get the time remaining in a readable format
 function getTimeRemaining(eventDate) {
   // Difference in milliseconds
-  const timeDiff = eventDate - now
   const now = new Date()
+  const timeDiff = eventDate - now
 
   if (timeDiff <= 0) {
     return 'Event already started!'
