@@ -144,6 +144,7 @@ async function checkForEventsUpdates() {
           .setImage(entry.asset?.filenameUrl)
           .setTitle(entry.title)
           .setURL(eventUrl)
+          .setAuthor({ name: 'Le Grand Conseil', url: process.env.WEBSITE })
           .setDescription(entry.description || 'No description available')
           .addFields(
             { name: '\u200B', value: `:calendar_spiral: ${readableDate}` },
@@ -228,16 +229,28 @@ async function checkForNewsUpdates() {
       for (const entry of newEntries) {
         const newsUrl = `${process.env.NEWS}/${entry.slug}`
 
+        // Format the date to be more readable
+        const date = new Date(entry.publishedAt)
+        const readableDate = date.toLocaleString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+
         // Create the embed message with EmbedBuilder
         const embed = new EmbedBuilder()
           .setColor(entry.postCategory?.color)
           .setImage(entry.asset?.filenameUrl)
           .setTitle(entry.title)
           .setURL(newsUrl)
+          .setAuthor({ name: 'Le Grand Conseil', url: process.env.WEBSITE })
           .setDescription(entry.excerpt || 'No description available')
           .addFields({
             name: '\u200B',
-            value: `:pencil: ${entry.user.nickname}`,
+            value: `:pencil: Publié le ${readableDate} par ${entry.user.nickname}`,
           })
 
         // Send the embed to the channel
