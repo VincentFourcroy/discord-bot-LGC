@@ -126,14 +126,15 @@ async function checkForEventsUpdates() {
 
         // Format the date to be more readable
         const date = new Date(entry.startsAt)
-        const readableDate = date.toLocaleString('fr-FR', {
+        const readableDate = new Intl.DateTimeFormat('fr-FR', {
+          timeZone: 'Europe/Paris',
           weekday: 'long',
           year: 'numeric',
           month: 'long',
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-        })
+        }).format(date)
 
         // Calculate the time remaining
         let timeRemaining = getTimeRemaining(date)
@@ -231,14 +232,15 @@ async function checkForNewsUpdates() {
 
         // Format the date to be more readable
         const date = new Date(entry.publishedAt)
-        const readableDate = date.toLocaleString('fr-FR', {
+        const readableDate = new Intl.DateTimeFormat('fr-FR', {
+          timeZone: 'Europe/Paris',
           weekday: 'long',
           year: 'numeric',
           month: 'long',
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-        })
+        }).format(date)
 
         // Create the embed message with EmbedBuilder
         const embed = new EmbedBuilder()
