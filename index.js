@@ -9,6 +9,7 @@ const {
   EmbedBuilder,
 } = require('discord.js')
 const fetch = require('node-fetch')
+const schedule = require('node-schedule')
 
 dotenv.config()
 
@@ -27,6 +28,9 @@ const NEWS_JSON_FILE_PATH = '/data/news_data.json'
 const CHECK_INTERVAL = 10 * 60 * 1000
 const EVENTS_CHANNEL_ID = process.env.EVENTS_CHANNEL_ID
 const NEWS_CHANNEL_ID = process.env.NEWS_CHANNEL_ID
+const REMINDER_CHANNEL_ID = process.env.REMINDER_CHANNEL_ID
+const CONSEILLER_ROLE_ID = process.env.CONSEILLER_ROLE_ID
+const MEMBRE_ROLE_ID = process.env.MEMBRE_ROLE_ID
 
 for (const folder of commandFolders) {
   const commandsPath = path.join(foldersPath, folder)
@@ -82,6 +86,13 @@ client.once(Events.ClientReady, (c) => {
   // Periodical checks
   setInterval(checkForEventsUpdates, CHECK_INTERVAL)
   setInterval(checkForNewsUpdates, CHECK_INTERVAL)
+
+  schedule.scheduleJob('00 10 * * 1,4', async () => {
+    const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
+    await reminderChannel.send(
+      `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\n:rotating_light: ***RAPPEL*** :rotating_light: Inscrivez-vous pour le raid de ce soir si ce n'est pas encore fait !`,
+    )
+  })
 })
 
 async function checkForEventsUpdates() {
