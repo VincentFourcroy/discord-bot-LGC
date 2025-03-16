@@ -78,6 +78,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 })
+
 client.once(Events.ClientReady, (c) => {
   console.log(`Logged in as ${c.user.tag}`)
   // Initial checks
@@ -95,21 +96,26 @@ client.once(Events.ClientReady, (c) => {
   })
 })
 
-async function checkForEventsUpdates() {
-  try {
-    const response = await fetch(EVENTS_API_URL)
+// Helper function to fetch all pages of data
+async function fetchAllPages(url) {
+  let allData = []
+  let nextPageUrl = url
+
+  while (nextPageUrl) {
+    const response = await fetch(nextPageUrl)
     if (!response.ok) throw new Error('Failed to fetch JSON data')
 
     const jsonResponse = await response.json()
-    // Debugging
-    // console.log(
-    //   'Fetched Data Structure:',
-    //   JSON.stringify(jsonResponse, null, 2),
-    // )
+    allData = allData.concat(jsonResponse.items || [])
+    nextPageUrl = jsonResponse.links.next || null
+  }
 
-    // Correctly extract the array from `items`
-    const newData = jsonResponse.items || []
-    // console.log('Extracted Data:', newData)
+  return allData
+}
+
+async function checkForEventsUpdates() {
+  try {
+    const newData = await fetchAllPages(EVENTS_API_URL)
 
     if (!Array.isArray(newData)) {
       console.error('Error: Expected an array but got:', typeof newData)
@@ -121,21 +127,17 @@ async function checkForEventsUpdates() {
     if (fs.existsSync(EVENTS_JSON_FILE_PATH)) {
       oldData = JSON.parse(fs.readFileSync(EVENTS_JSON_FILE_PATH, 'utf-8'))
     }
-    // console.log('Old Data:', oldData)
 
     // Find new entries (check by `id`)
     const newEntries = newData.filter(
       (newItem) => !oldData.some((oldItem) => oldItem.id === newItem.id),
     )
-    // console.log('New Entries Found:', newEntries)
 
     // Send Discord message for new entries (if any)
     if (newEntries.length > 0) {
       const channel = await client.channels.fetch(EVENTS_CHANNEL_ID)
       for (const entry of newEntries) {
         const eventUrl = `${process.env.EVENTS}/${entry.id}`
-
-        // Format the date to be more readable
         const date = new Date(entry.startsAt)
         const readableDate = new Intl.DateTimeFormat('fr-FR', {
           timeZone: 'Europe/Paris',
@@ -147,10 +149,8 @@ async function checkForEventsUpdates() {
           minute: '2-digit',
         }).format(date)
 
-        // Calculate the time remaining
         let timeRemaining = getTimeRemaining(date)
 
-        // Create the embed message with EmbedBuilder
         const embed = new EmbedBuilder()
           .setColor(entry.eventType?.color)
           .setImage(entry.asset?.filenameUrl)
@@ -163,35 +163,32 @@ async function checkForEventsUpdates() {
             { name: '\u200B', value: `:hourglass: ${timeRemaining}` },
           )
 
-        // Send the embed to the channel
         const message = await channel.send({ embeds: [embed] })
-        // Function to update time remaining dynamically every minute
         const interval = setInterval(async () => {
-          // Recalculate time remaining
           timeRemaining = getTimeRemaining(date)
 
-          // Stop updating when the event starts
           if (new Date() >= date) {
-            // Stop interval
             clearInterval(interval)
             return
           }
 
-          // Edit the message with the new time remaining
           const updatedEmbed = EmbedBuilder.from(embed).setFields(
             { name: '\u200B', value: `:calendar_spiral: ${readableDate}` },
             { name: '\u200B', value: `:hourglass: ${timeRemaining}` },
           )
 
-          // Update every minute
           await message.edit({ embeds: [updatedEmbed] })
         }, 60000)
       }
     }
 
     // Save the new JSON only if new data is found
-    if (newData.length > oldData.length) {
-      fs.writeFileSync(EVENTS_JSON_FILE_PATH, JSON.stringify(newData, null, 2))
+    if (newEntries.length > 0) {
+      const updatedData = [...oldData, ...newEntries]
+      fs.writeFileSync(
+        EVENTS_JSON_FILE_PATH,
+        JSON.stringify(updatedData, null, 2),
+      )
       console.log('✅ Events JSON data updated successfully.')
     } else {
       console.warn('⚠️ No new events data found. Skipping file update.')
@@ -203,19 +200,7 @@ async function checkForEventsUpdates() {
 
 async function checkForNewsUpdates() {
   try {
-    const response = await fetch(NEWS_API_URL)
-    if (!response.ok) throw new Error('Failed to fetch JSON data')
-
-    const jsonResponse = await response.json()
-    // Debugging
-    // console.log(
-    //   'Fetched Data Structure:',
-    //   JSON.stringify(jsonResponse, null, 2),
-    // )
-
-    // Correctly extract the array from `items`
-    const newData = jsonResponse.items || []
-    // console.log('Extracted Data:', newData)
+    const newData = await fetchAllPages(NEWS_API_URL)
 
     if (!Array.isArray(newData)) {
       console.error('Error: Expected an array but got:', typeof newData)
@@ -227,13 +212,11 @@ async function checkForNewsUpdates() {
     if (fs.existsSync(NEWS_JSON_FILE_PATH)) {
       oldData = JSON.parse(fs.readFileSync(NEWS_JSON_FILE_PATH, 'utf-8'))
     }
-    // console.log('Old Data:', oldData)
 
     // Find new entries (check by `id`)
     const newEntries = newData.filter(
       (newItem) => !oldData.some((oldItem) => oldItem.id === newItem.id),
     )
-    // console.log('New Entries Found:', newEntries)
 
     // Send Discord message for new entries (if any)
     if (newEntries.length > 0) {
@@ -272,8 +255,12 @@ async function checkForNewsUpdates() {
     }
 
     // Save the new JSON only if new data is found
-    if (newData.length > oldData.length) {
-      fs.writeFileSync(NEWS_JSON_FILE_PATH, JSON.stringify(newData, null, 2))
+    if (newEntries.length > 0) {
+      const updatedData = [...oldData, ...newEntries]
+      fs.writeFileSync(
+        NEWS_JSON_FILE_PATH,
+        JSON.stringify(updatedData, null, 2),
+      )
       console.log('✅ News JSON data updated successfully.')
     } else {
       console.warn('⚠️ No new news data found. Skipping file update.')
