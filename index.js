@@ -10,6 +10,7 @@ const {
 } = require('discord.js')
 const fetch = require('node-fetch')
 const schedule = require('node-schedule')
+const moment = require('moment-timezone')
 
 dotenv.config()
 
@@ -88,12 +89,15 @@ client.once(Events.ClientReady, (c) => {
   setInterval(checkForEventsUpdates, CHECK_INTERVAL)
   setInterval(checkForNewsUpdates, CHECK_INTERVAL)
 
-  schedule.scheduleJob('00 10 * * 1,4', async () => {
-    const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
-    await reminderChannel.send(
-      `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\n:rotating_light: ***RAPPEL*** :rotating_light: Inscrivez-vous pour le raid de ce soir si ce n'est pas encore fait !`,
-    )
-  })
+  schedule.scheduleJob(
+    { hour: 10, minute: 30, dayOfWeek: [1, 4], tz: 'Europe/Paris' },
+    async () => {
+      const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
+      await reminderChannel.send(
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\n:rotating_light: ***RAPPEL*** :rotating_light: Inscrivez-vous pour le raid de ce soir si ce n'est pas encore fait !`,
+      )
+    },
+  )
 })
 
 // Helper function to fetch all pages of data
