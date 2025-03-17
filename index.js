@@ -90,7 +90,7 @@ client.once(Events.ClientReady, (c) => {
   setInterval(checkForNewsUpdates, CHECK_INTERVAL)
 
   schedule.scheduleJob(
-    { hour: 10, minute: 20, dayOfWeek: [1, 4], tz: 'Europe/Paris' },
+    { hour: 10, minute: 30, dayOfWeek: [1, 4], tz: 'Europe/Paris' },
     async () => {
       const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
       await reminderChannel.send(
