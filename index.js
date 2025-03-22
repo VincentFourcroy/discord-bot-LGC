@@ -101,17 +101,37 @@ client.once(Events.ClientReady, (c) => {
 })
 
 // Helper function to fetch all pages of data
-async function fetchAllPages(url) {
+async function fetchAllPages(baseUrl) {
   let allData = []
-  let nextPageUrl = url
+  let page = 1
+  const limit = 10
 
-  while (nextPageUrl) {
-    const response = await fetch(nextPageUrl)
-    if (!response.ok) throw new Error('Failed to fetch JSON data')
+  while (true) {
+    const url = `${baseUrl}?page=${page}&limit=${limit}`
+
+    const response = await fetch(url)
+    if (!response.ok) {
+      const errorBody = await response.text()
+      console.error(`Failed to fetch JSON data. Response: ${errorBody}`)
+      throw new Error('Failed to fetch JSON data')
+    }
 
     const jsonResponse = await response.json()
-    allData = allData.concat(jsonResponse.items || [])
-    nextPageUrl = jsonResponse.links.next || null
+
+    // Ensure `items` exist in the response
+    if (!jsonResponse.items || jsonResponse.items.length === 0) {
+      console.log('No more items to fetch. Stopping pagination.')
+      break // Exit the loop if there are no more items
+    }
+
+    allData = allData.concat(jsonResponse.items)
+    page++ // Increment the page number
+
+    // Optional: Stop if the `links.next` is missing (safety check)
+    if (!jsonResponse.links || !jsonResponse.links.next) {
+      console.log('No next link found. Stopping pagination.')
+      break
+    }
   }
 
   return allData
