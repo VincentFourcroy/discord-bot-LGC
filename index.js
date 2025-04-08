@@ -93,9 +93,32 @@ client.once(Events.ClientReady, (c) => {
     { hour: 10, minute: 0, dayOfWeek: [1, 4], tz: 'Europe/Paris' },
     async () => {
       const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
-      await reminderChannel.send(
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\n:rotating_light: ***RAPPEL*** :rotating_light: Inscrivez-vous pour le raid de ce soir si ce n'est pas encore fait !`,
-      )
+
+      // Array of predefined messages
+      const messages = [
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nPour votre santé, mangez 5 Fruits & Légumes par jour. Et inscrivez-vous au raid de ce soir ! :apple:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nC'est l'heure de la pause café ! Et de l'inscription au raid de ce soir ! :coffee:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nMicheeeeeeeeeel, c'est le rappel-euh ! Pour vouuuuuuus inscrire en raid ! :partying_face:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nLa démocratie n'attend pas. Rejoignez les HellGC, inscrivez-vous au raid de ce soir ! :military_helmet:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nLe Grand Conseil a besoin de vous ! Inscrivez-vous au raid de ce soir ! :index_pointing_at_the_viewer:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nQuelle heure est-il ? Celle d'une partie de Civ ? Celle d'un p'tit Kallax ? Non ! Celle du rappel de l'inscription au raid du soir ! :grin:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nPromotion au rayon Calendrier ! Pour une inscription au raid de ce soir réalisée, obtenez une photo des pieds de Xal'atath ! :scream:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nTu vois, le monde se divise en deux catégories... Ceux qui ne viennent pas en raid... Et ceux qui s'inscrivent... Toi, tu t'inscris. :cowboy:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nVous savez, moi je ne crois pas qu'il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd'hui avec vous, je dirais que c'est d'abord des inscriptions au raid du soir. :thinking:`,
+      ]
+
+      // Shuffle the array using the Fisher-Yates algorithm
+      for (let i = messages.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[messages[i], messages[j]] = [messages[j], messages[i]]
+      }
+
+      // Pick a random message from the array
+      const randomIndex = Math.floor(Math.random() * messages.length)
+      const randomMessage = messages[randomIndex]
+
+      // Send the random message
+      await reminderChannel.send(randomMessage)
     },
   )
 })
