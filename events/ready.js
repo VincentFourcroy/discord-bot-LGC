@@ -1,7 +1,6 @@
 const { Events } = require('discord.js')
 const schedule = require('node-schedule')
 const express = require('express')
-const os = require('node:os')
 const { checkForEventsUpdates } = require('../tasks/eventChecker')
 const { checkForNewsUpdates } = require('../tasks/newsChecker')
 
