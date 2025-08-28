@@ -89,5 +89,37 @@ module.exports = {
         await reminderChannel.send(randomMessage)
       },
     )
+    schedule.scheduleJob(
+      { hour: 10, minute: 0, dayOfWeek: [6], tz: 'Europe/Paris' },
+      async () => {
+        const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
+
+        // Array of predefined messages
+        const messages = [
+          `Ce soir, c'est raid reroll ou vaisselle. À toi de choisir, mais le raid est plus fun ! :bowl_with_spoon:`,
+          `Inscris-toi au raid reroll de ce soir, sinon je vais encore faire des blagues... et personne ne veut ça. :clown_face:`,
+          `Ce soir, le Grand Conseil t'attend au raid reroll. Si tu ne viens pas, on enverra des gifs gênants. :see_no_evil:`,
+          `Le raid reroll de ce soir, c'est comme le café : indispensable pour bien finir la journée ! :coffee:`,
+          `On a des cookies... mais seulement pour ceux qui s'inscrivent au raid reroll de ce soir. :cookie:`,
+          `Inscris-toi au raid reroll de ce soir, sinon on te mettra dans mon équipe. Courage. :sweat_smile:`,
+          `Ce soir, c'est raid reroll. Si tu ne viens pas, on te laisse le loot... mais seulement en photo. :camera_flash:`,
+          `Un raid reroll sans toi, c'est comme une pizza sans fromage. Possible, mais franchement moins bon. :pizza:`,
+          `Ce soir, c'est raid reroll. Si tu viens, tu gagnes des points karma. Si tu ne viens pas, tu gagnes… des regards déçus. :disappointed:`,
+        ]
+
+        // Shuffle the array using the Fisher-Yates algorithm
+        for (let i = messages.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[messages[i], messages[j]] = [messages[j], messages[i]]
+        }
+
+        // Pick a random message from the array
+        const randomIndex = Math.floor(Math.random() * messages.length)
+        const randomMessage = messages[randomIndex]
+
+        // Send the random message
+        await reminderChannel.send(randomMessage)
+      },
+    )
   },
 }

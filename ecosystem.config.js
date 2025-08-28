@@ -18,6 +18,7 @@ module.exports = {
         NODE_ENV: 'production',
         watch: false,
       },
+      windowsHide: true,
     },
   ],
 }
