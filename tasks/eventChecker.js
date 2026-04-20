@@ -1,3 +1,5 @@
+// LEGACY CODE NOT USED ANYMORE, KEPT FOR REFERENCE ONLY
+
 const fs = require('node:fs')
 const { EmbedBuilder } = require('discord.js')
 const { fetchAllPages } = require('../utils/fetch')

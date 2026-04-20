@@ -32,7 +32,7 @@ function initializeScheduler(client) {
         `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nPromotion au rayon Calendrier ! Pour une inscription au raid de ce soir réalisée, obtenez une photo des pieds de Xal'atath ! :scream:`,
         `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nTu vois, le monde se divise en deux catégories... Ceux qui ne viennent pas en raid... Et ceux qui s'inscrivent... Toi, tu t'inscris. :cowboy:`,
         `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nVous savez, moi je ne crois pas qu'il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd'hui avec vous, je dirais que c'est d'abord des inscriptions au raid du soir. :thinking:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nSi vous n'êtes pas inscrits au raid de ce soir, nous ne serons pas en colère... Nous serons juste déçus.`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nSi vous n'êtes pas inscrits au raid de ce soir, nous ne serons pas en colère... Nous serons juste déçus.\nN'oubliez pas non plus de remplir vos listes de BIS sur vos fiches de personnage !`,
       ]
 
       for (let i = messages.length - 1; i > 0; i--) {

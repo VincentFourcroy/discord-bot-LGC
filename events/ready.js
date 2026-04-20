@@ -17,9 +17,9 @@ module.exports = {
     initializeScheduler(client)
 
     // Tâches de vérification initiales et périodiques
-    checkForEventsUpdates(client)
+    // checkForEventsUpdates(client)
     checkForNewsUpdates(client)
-    setInterval(() => checkForEventsUpdates(client), CHECK_INTERVAL)
+    // setInterval(() => checkForEventsUpdates(client), CHECK_INTERVAL)
     setInterval(() => checkForNewsUpdates(client), CHECK_INTERVAL)
   },
 }
