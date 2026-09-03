@@ -1,5 +1,6 @@
 const schedule = require('node-schedule')
 const fetch = require('node-fetch')
+const fs = require('node:fs')
 const {
   ActionRowBuilder,
   ButtonBuilder,
@@ -15,24 +16,67 @@ const IMAGE_CHANNEL_ID = process.env.IMAGE_CHANNEL_ID
 const MEME_URL = process.env.MEME_URL
 const galleryUrl = process.env.IMAGE_LIKE_URL
 
+const JOBS_STATE_PATH = './data/scheduler_state.json'
+
+const jobsEnabled = {
+  raidReminder: true,
+  raidReroll: true,
+  dailyMeme: true,
+}
+
+function loadJobsState() {
+  try {
+    if (fs.existsSync(JOBS_STATE_PATH)) {
+      const data = JSON.parse(fs.readFileSync(JOBS_STATE_PATH, 'utf-8'))
+      for (const key of Object.keys(jobsEnabled)) {
+        if (typeof data[key] === 'boolean') jobsEnabled[key] = data[key]
+      }
+      console.log('✅ Scheduler state loaded:', jobsEnabled)
+    }
+  } catch (error) {
+    console.error('❌ Error loading scheduler state:', error)
+  }
+}
+
+function saveJobsState() {
+  try {
+    fs.writeFileSync(JOBS_STATE_PATH, JSON.stringify(jobsEnabled, null, 2))
+  } catch (error) {
+    console.error('❌ Error saving scheduler state:', error)
+  }
+}
+
+function setJobEnabled(jobName, enabled) {
+  if (!(jobName in jobsEnabled)) return false
+  jobsEnabled[jobName] = enabled
+  saveJobsState()
+  console.log(`Scheduler job "${jobName}" ${enabled ? 'activé' : 'désactivé'}`)
+  return true
+}
+
 function initializeScheduler(client) {
+  loadJobsState()
+
   // Tâche planifiée pour les rappels de raid
   schedule.scheduleJob(
+    'raidReminder',
     { hour: 10, minute: 0, dayOfWeek: [1, 4], tz: 'Europe/Paris' },
     async () => {
+      if (!jobsEnabled.raidReminder) return
+
       const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
 
       const messages = [
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nPour votre santé, mangez 5 Fruits & Légumes par jour. Et inscrivez-vous au raid de ce soir ! :apple:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nSalut tout le monde ! Le calendrier pour nos prochains raids est ouvert. N'oubliez pas de confirmer votre présence, on a besoin de tous les héros d'Azeroth pour espérer tomber les boss cette semaine !`,
         `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nC'est l'heure de la pause café ! Et de l'inscription au raid de ce soir ! :coffee:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nMicheeeeeeeeeel, c'est le rappel-euh ! Pour vouuuuuuus inscrire en raid ! :partying_face:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nLa démocratie n'attend pas. Rejoignez les HellGC, inscrivez-vous au raid de ce soir ! :military_helmet:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nPetit rappel pour les inscriptions aux raids. Azeroth a besoin de vous, et nous aussi ! Un clic sur le calendrier et on est parés pour l'aventure.`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nRaid en approche ! N'oubliez pas de vous inscrire sur le site. Même les plus grands champions ont besoin d'une bonne équipe, alors on compte sur votre présence.`,
         `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nLe Grand Conseil a besoin de vous ! Inscrivez-vous au raid de ce soir ! :index_pointing_at_the_viewer:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nQuelle heure est-il ? Celle d'une partie de Civ ? Celle d'un p'tit Kallax ? Non ! Celle du rappel de l'inscription au raid du soir ! :grin:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nPromotion au rayon Calendrier ! Pour une inscription au raid de ce soir réalisée, obtenez une photo des pieds de Xal'atath ! :scream:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nTu vois, le monde se divise en deux catégories... Ceux qui ne viennent pas en raid... Et ceux qui s'inscrivent... Toi, tu t'inscris. :cowboy:`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nSi vous prévoyez de venir aider à purger Azeroth de ses menaces, pensez à vous inscrire sur le calendrier. On évite le rush de dernière minute, c'est mieux pour tout le monde !`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nOn ne va pas down le prochain boss avec la puissance de l'amitié et vos excuses en carton. Allez, inscrivez-vous au raid de ce soir, à moins que vous ne préfériez loot que du gris ?!`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nArthas a fini par se lever de son trône gelé, vous devriez réussir à bouger vos doigts jusqu'au calendrier pour vous inscrire au raid de ce soir ! On n'attend plus que vous !`,
         `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nVous savez, moi je ne crois pas qu'il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd'hui avec vous, je dirais que c'est d'abord des inscriptions au raid du soir. :thinking:`,
-        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nSi vous n'êtes pas inscrits au raid de ce soir, nous ne serons pas en colère... Nous serons juste déçus.\nN'oubliez pas non plus de remplir vos listes de BIS sur vos fiches de personnage !`,
+        `<@&${CONSEILLER_ROLE_ID}> <@&${MEMBRE_ROLE_ID}>\nSi vous n'êtes pas inscrits au raid de ce soir, nous ne serons pas en colère... Nous serons juste déçus.`,
       ]
 
       for (let i = messages.length - 1; i > 0; i--) {
@@ -48,8 +92,11 @@ function initializeScheduler(client) {
 
   // Tâche planifiée pour les rappels de raid reroll
   schedule.scheduleJob(
+    'raidReroll',
     { hour: 10, minute: 0, dayOfWeek: [6], tz: 'Europe/Paris' },
     async () => {
+      if (!jobsEnabled.raidReroll) return
+
       const reminderChannel = await client.channels.fetch(REMINDER_CHANNEL_ID)
 
       const messages = [
@@ -77,8 +124,11 @@ function initializeScheduler(client) {
 
   // Tâche planifiée pour poster un meme aléatoire depuis la galerie
   schedule.scheduleJob(
+    'dailyMeme',
     { hour: 13, minute: 0, tz: 'Europe/Paris' },
     async () => {
+      if (!jobsEnabled.dailyMeme) return
+
       try {
         const imageChannel = await client.channels.fetch(IMAGE_CHANNEL_ID)
 
@@ -151,4 +201,4 @@ function initializeScheduler(client) {
   console.log('Scheduler initialized.')
 }
 
-module.exports = { initializeScheduler }
+module.exports = { initializeScheduler, setJobEnabled, jobsEnabled }

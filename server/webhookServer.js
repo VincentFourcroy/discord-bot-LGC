@@ -7,6 +7,8 @@ const {
 } = require('./routes/eventRoutes')
 const createNewsRoutes = require('./routes/websiteNewsRoutes')
 const createMiscInfoRoutes = require('./routes/miscInfoRoutes')
+const createSchedulerRoutes = require('./routes/schedulerRoutes')
+const createRaidLogsRoutes = require('./routes/raidlogsPostRoutes')
 
 const WEBHOOK_PORT = process.env.WEBHOOK_PORT
 const EVENT_MESSAGES_MAP_PATH = './data/event_messages_map.json'
@@ -113,6 +115,10 @@ function startServer(client) {
   const miscInfoRoutes = createMiscInfoRoutes(client, verifyWebhookToken)
   app.use('/webhook', miscInfoRoutes)
 
+  // ROUTES SCHEDULER - Activer/désactiver les jobs planifiés
+  const schedulerRoutes = createSchedulerRoutes(verifyWebhookToken)
+  app.use('/webhook/scheduler', schedulerRoutes)
+
   // ROUTES EVENTS - Utilisation du router modulaire
   const eventRoutes = createEventRoutes(
     client,
@@ -122,6 +128,10 @@ function startServer(client) {
     verifyWebhookToken,
   )
   app.use('/webhook/events', eventRoutes)
+
+  // ROUTES RAIDLOGS - Poster les raidlogs
+  const raidLogsRoutes = createRaidLogsRoutes(client, verifyWebhookToken)
+  app.use('/webhook', raidLogsRoutes)
 
   app.listen(WEBHOOK_PORT, () => {
     console.log(`Webhook server listening on port ${WEBHOOK_PORT}`)
